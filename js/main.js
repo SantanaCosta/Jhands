@@ -8,6 +8,7 @@ let render = Matter.Render.create({
     engine: engine,
     options: {
         width: document.documentElement.clientWidth - rightCanvasBorder,
+        wireframes:false,
     },
 });
 
@@ -30,6 +31,6 @@ render.mouse = mouse;
 Matter.World.add(engine.world, mouseConstraint);
 
 // Show world
-init(engine.world);
+init(engine.world, mouseConstraint);
 Matter.Runner.run(engine);
 Matter.Render.run(render);
