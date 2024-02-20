@@ -12,16 +12,20 @@ function init(world, mouseConstraint){
     Matter.World.add(world, ground);
 
     // Creating initial bodies
-    genCharacter(world, mouseConstraint, 1);
-    genCharacter(world, mouseConstraint, 1);
-    genCharacter(world, mouseConstraint, 1);
-    genCharacter(world, mouseConstraint, 1);
+    genRandomCharacter(world, mouseConstraint, 5);
+}
+
+function genRandomCharacter(world, mouseConstraint, qty){
+    while (qty-- > 0) {     
+        let spriteId = Math.floor(Math.random() * Object.keys(scales).length) + 1;
+        genCharacter(world, mouseConstraint, spriteId);
+    }
 }
 
 function getHead(spriteId){
     let head;
 
-    if(scales[spriteId].circle){
+    if(scales[spriteId].roundHead){
         head = Matter.Bodies.circle(initialCenter,252,25,{
             render: {
                 sprite: {
