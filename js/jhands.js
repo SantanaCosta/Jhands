@@ -2,9 +2,15 @@ let initialCenter = window.innerWidth/2.0;
 let lastMouseBody = null;
 let footRot = 0.2;
 let headAngleLimit = 1.0;
-let scales = {
-    1: {roundHead: true, xScale: 0.1, yScale: 0.1, footChamferRadius: 
-        {0:[3.5,0,0,0], 1:[0,3.5,0,0]}, footFillStyle: '#375b95'}
+let sprites = {
+    1: {head: {isRound: true, xScale: 0.1, yScale: 0.1, y: 2, radius: 25, height: null, width: null}, 
+        body: {xScale: 0.1, yScale: 0.1, y: 50, height: 60, width: 40},
+        foot: {distance: 15, y: 81, height: 11, width:6, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
+        fillStyle: '#375b95'}},
+    2: {head: {isRound: true, xScale: 0.08, yScale: 0.08, y: 12, radius: 25, height: null, width: null}, 
+    body: {xScale: 0.1, yScale: 0.1, y: 50, height: 60, width: 40},
+    foot: {distance: 12, y: 78, height: 11, width:6, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
+    fillStyle: '#563b4d'}}
 };
 
 function init(world, mouseConstraint){
@@ -22,33 +28,34 @@ function init(world, mouseConstraint){
 
 function genRandomCharacter(world, mouseConstraint, qty){
     while (qty-- > 0) {     
-        let spriteId = Math.floor(Math.random() * Object.keys(scales).length) + 1;
+        let spriteId = Math.floor(Math.random() * Object.keys(sprites).length) + 1;
         genCharacter(world, mouseConstraint, spriteId);
     }
 }
 
 function getHead(spriteId){
     let head;
+    let spriteHead = sprites[spriteId].head;
 
-    if(scales[spriteId].roundHead){
-        head = Matter.Bodies.circle(initialCenter,2,25,{
+    if(spriteHead.isRound){
+        head = Matter.Bodies.circle(initialCenter,spriteHead.y,spriteHead.radius,{
             render: {
                 sprite: {
                     texture: "assets/Sprite" + spriteId + "-Head.png",
-                    xScale: scales[spriteId].xScale,
-                    yScale: scales[spriteId].yScale,
+                    xScale: spriteHead.xScale,
+                    yScale: spriteHead.yScale,
                     angle: 0
                 }
             }
         });
     }
     else {
-        head = Matter.Bodies.rectangle(initialCenter,2,20,50,{
+        head = Matter.Bodies.rectangle(initialCenter,spriteHead.y,spriteHead.height,spriteHead.width,{
             render: {
                 sprite: {
                     texture: "assets/Sprite" + spriteId + "-Head.png",
-                    xScale: scales[spriteId].xScale,
-                    yScale: scales[spriteId].yScale,
+                    xScale: spriteHead.xScale,
+                    yScale: spriteHead.yScale,
                     angle: 0
                 }
             }
@@ -58,13 +65,14 @@ function getHead(spriteId){
 }
 
 function getBody(spriteId){
+    let spriteBody = sprites[spriteId].body;
 
-    return Matter.Bodies.rectangle(initialCenter,50,60,40, {
+    return Matter.Bodies.rectangle(initialCenter,spriteBody.y,spriteBody.height,spriteBody.width, {
         render: {
             sprite: {
                 texture: "assets/Sprite" + spriteId + "-Body.png",
-                xScale: scales[spriteId].xScale,
-                yScale: scales[spriteId].yScale,
+                xScale: spriteBody.xScale,
+                yScale: spriteBody.yScale,
                 angle: 0
             }
         }
@@ -72,17 +80,18 @@ function getBody(spriteId){
 }
 
 function getFoot(spriteId, foot){
+    let spriteFoot = sprites[spriteId].foot;
     let side = 1;
 
     if(foot == 1)
         side = -1;
     
-    return Matter.Bodies.rectangle(initialCenter + (15.0 * side),81,11,6, {
+    return Matter.Bodies.rectangle(initialCenter + (spriteFoot.distance * side),spriteFoot.y,spriteFoot.height,spriteFoot.width, {
         chamfer: {
-            radius: scales[spriteId].footChamferRadius[foot]
+            radius: spriteFoot.chamfer[foot]
           },
         render: {
-            fillStyle: scales[spriteId].footFillStyle
+            fillStyle: spriteFoot.fillStyle
         }
     });
 }
@@ -122,9 +131,9 @@ function genCharacter(world, mouseConstraint, spriteId) {
             // rotaciona a head com um ângulo relativo ao seu ângulo atual
             Matter.Body.rotate(head, headRotSpeed * headAngleLimit);
 
-            if (leftFoot.angle > -0.8)
+            if (leftFoot.angle > 1.5)
                 footRot = -0.15;
-            else if (leftFoot.angle < -2.5)
+            else if (leftFoot.angle < 0)
                 footRot = 0.15;
 
             Matter.Body.rotate(leftFoot, footRot);
@@ -139,7 +148,7 @@ function genCharacter(world, mouseConstraint, spriteId) {
 
             if (lastMouseBody === character) // Changing head sprite when being held
                 head.render.sprite.texture = "assets/Sprite" + spriteId + "-HeadGrab.png";
-            else if (character.parts.length > 2){ // Restoring default body, if alive
+            else if (character.parts.length >= partsQty){ // Restoring default body, if alive
                 head.render.sprite.texture = "assets/Sprite" + spriteId + "-Head.png"
                 Matter.Body.setAngle(leftFoot, 0);
                 Matter.Body.setAngle(rightFoot, 0);
@@ -160,8 +169,8 @@ function genCharacter(world, mouseConstraint, spriteId) {
                     render: {
                         sprite: {
                             texture: "assets/Sprite" + spriteId + "-HeadDead.png",
-                            xScale: 0.1,
-                            yScale: 0.1,
+                            xScale: sprites[spriteId].head.xScale,
+                            yScale: sprites[spriteId].head.yScale,
                         }
                     }
                 }));
