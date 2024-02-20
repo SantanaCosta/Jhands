@@ -13,6 +13,11 @@ function init(world, mouseConstraint){
 
     // Creating initial bodies
     genRandomCharacter(world, mouseConstraint, 5);
+
+    Matter.Events.on(mouseConstraint, "mousedown", function(event) {
+        if(event.mouse.button === 1)
+            genRandomCharacter(engine.world, mouseConstraint, 3);
+    });
 }
 
 function genRandomCharacter(world, mouseConstraint, qty){
@@ -26,7 +31,7 @@ function getHead(spriteId){
     let head;
 
     if(scales[spriteId].roundHead){
-        head = Matter.Bodies.circle(initialCenter,252,25,{
+        head = Matter.Bodies.circle(initialCenter,2,25,{
             render: {
                 sprite: {
                     texture: "assets/Sprite" + spriteId + "-Head.png",
@@ -38,7 +43,7 @@ function getHead(spriteId){
         });
     }
     else {
-        head = Matter.Bodies.rectangle(initialCenter,252,20,50,{
+        head = Matter.Bodies.rectangle(initialCenter,2,20,50,{
             render: {
                 sprite: {
                     texture: "assets/Sprite" + spriteId + "-Head.png",
@@ -54,7 +59,7 @@ function getHead(spriteId){
 
 function getBody(spriteId){
 
-    return Matter.Bodies.rectangle(initialCenter,300,60,40, {
+    return Matter.Bodies.rectangle(initialCenter,50,60,40, {
         render: {
             sprite: {
                 texture: "assets/Sprite" + spriteId + "-Body.png",
@@ -72,7 +77,7 @@ function getFoot(spriteId, foot){
     if(foot == 1)
         side = -1;
     
-    return Matter.Bodies.rectangle(initialCenter + (15.0 * side),331,11,6, {
+    return Matter.Bodies.rectangle(initialCenter + (15.0 * side),81,11,6, {
         chamfer: {
             radius: scales[spriteId].footChamferRadius[foot]
           },
