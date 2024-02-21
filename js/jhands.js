@@ -5,7 +5,7 @@ let footRot = 0.2;
 let headAngleLimit = 1.0;
 let flagHolding = false;
 let sprites = {
-    1: {head: {isRound: true, xScale: 0.1, yScale: 0.1, y: 2, radius: 25, height: null, width: null}, 
+    1: {head: {isRound: true, xScale: 0.1, yScale: 0.1, y: 5, radius: 30, height: null, width: null}, 
         body: {isUnderHead: true, xScale: 0.1, yScale: 0.1, y: 50, height: 40, width: 60},
         foot: {distance: 15, y: 81, height: 6, width:11, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
         fillStyle: '#375b95'}},
@@ -13,7 +13,7 @@ let sprites = {
         body: {isUnderHead: true, xScale: 0.1, yScale: 0.1, y: 50, height: 40, width: 60},
         foot: {distance: 12, y: 78, height: 6, width:11, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
         fillStyle: '#563b4d'}},
-    3: {head: {isRound: false, xScale: 0.12, yScale: 0.12, y: -10, radius: null, height: 35, width: 20}, 
+    3: {head: {isRound: false, xScale: 0.12, yScale: 0.12, y: -10, radius: null, height: 45, width: 20}, 
         body: {isUnderHead: false, xScale: 0.2, yScale: 0.2, y: 50, height: 42, width: 62},
         foot: {distance: 25, y: 100, height: 10, width:18, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
         fillStyle: '#50355e'}},
@@ -194,9 +194,8 @@ function genCharacter(world, mouseConstraint, spriteId) {
             else if (character.parts.length >= partsQty) // Restoring default body, if alive
                 restoreDefaultBody(); 
         } 
-
         // Head cutting
-        if (event.mouse.button === 2 && character.parts.length >= partsQty) {
+        else if (event.mouse.button === 2 && character.parts.length >= partsQty) {
             if (lastMouseBody === character) {
                 character.parts.splice(character.parts.findIndex(x => x === head), 1);
 
