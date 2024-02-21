@@ -8,6 +8,7 @@ let render = Matter.Render.create({
     engine: engine,
     options: {
         width: document.documentElement.clientWidth - rightCanvasBorder,
+        height: document.documentElement.clientHeight * 0.8,
         wireframes:false,
     },
 });

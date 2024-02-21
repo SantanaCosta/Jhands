@@ -1,25 +1,31 @@
 let initialCenter = window.innerWidth/2.0;
+let initialVerticalCenter = window.innerHeight;
 let lastMouseBody = null;
 let footRot = 0.2;
 let headAngleLimit = 1.0;
 let flagHolding = false;
 let sprites = {
     1: {head: {isRound: true, xScale: 0.1, yScale: 0.1, y: 2, radius: 25, height: null, width: null}, 
-        body: {isUnderHead: true, xScale: 0.1, yScale: 0.1, y: 50, height: 60, width: 40},
-        foot: {distance: 15, y: 81, height: 11, width:6, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
+        body: {isUnderHead: true, xScale: 0.1, yScale: 0.1, y: 50, height: 40, width: 60},
+        foot: {distance: 15, y: 81, height: 6, width:11, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
         fillStyle: '#375b95'}},
     2: {head: {isRound: true, xScale: 0.08, yScale: 0.08, y: 12, radius: 22, height: null, width: null}, 
-        body: {isUnderHead: true, xScale: 0.1, yScale: 0.1, y: 50, height: 60, width: 40},
-        foot: {distance: 12, y: 78, height: 11, width:6, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
+        body: {isUnderHead: true, xScale: 0.1, yScale: 0.1, y: 50, height: 40, width: 60},
+        foot: {distance: 12, y: 78, height: 6, width:11, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
         fillStyle: '#563b4d'}},
-    3: {head: {isRound: false, xScale: 0.12, yScale: 0.12, y: -10, radius: null, height: 50, width: 62}, 
-        body: {isUnderHead: false, xScale: 0.2, yScale: 0.2, y: 50, height: 120, width: 80},
-        foot: {distance: 28, y: 100, height: 18, width:10, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
-        fillStyle: '#50355e'}}
+    3: {head: {isRound: false, xScale: 0.12, yScale: 0.12, y: -10, radius: null, height: 35, width: 20}, 
+        body: {isUnderHead: false, xScale: 0.2, yScale: 0.2, y: 50, height: 42, width: 62},
+        foot: {distance: 25, y: 100, height: 10, width:18, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
+        fillStyle: '#50355e'}},
+    4: {head: {isRound: true, xScale: 0.1, yScale: 0.1, y: 9, radius: 22, height: null, width: null}, 
+        body: {isUnderHead: false, xScale: 0.12, yScale: 0.12, y: 50, height: 40, width: 60},
+        foot: {distance: 11.5, y: 80, height: 10, width:11, chamfer: {0:[0,4.5,0,0], 1:[4.5,0,0,0]}, 
+        fillStyle: '#735b6d'}},
 };
 
 function init(world, mouseConstraint){
-    let ground = Matter.Bodies.rectangle(initialCenter,600,5000,60,{ isStatic: true });
+    let ground = Matter.Bodies.rectangle(initialCenter,initialVerticalCenter*0.75,
+        5000,100,{ isStatic: true });
     Matter.World.add(world, ground);
 
     // Creating initial bodies
@@ -55,7 +61,7 @@ function getHead(spriteId){
         });
     }
     else {
-        head = Matter.Bodies.rectangle(initialCenter,spriteHead.y,spriteHead.height,spriteHead.width,{
+        head = Matter.Bodies.rectangle(initialCenter,spriteHead.y,spriteHead.width,spriteHead.height,{
             render: {
                 sprite: {
                     texture: "assets/Sprite" + spriteId + "-Head.png",
@@ -72,7 +78,7 @@ function getHead(spriteId){
 function getBody(spriteId){
     let spriteBody = sprites[spriteId].body;
 
-    return Matter.Bodies.rectangle(initialCenter,spriteBody.y,spriteBody.height,spriteBody.width, {
+    return Matter.Bodies.rectangle(initialCenter,spriteBody.y,spriteBody.width,spriteBody.height, {
         render: {
             sprite: {
                 texture: "assets/Sprite" + spriteId + "-Body.png",
@@ -80,7 +86,7 @@ function getBody(spriteId){
                 yScale: spriteBody.yScale,
                 angle: 0
             }
-        }
+        },
     });
 }
 
@@ -91,7 +97,7 @@ function getFoot(spriteId, foot){
     if(foot == 1)
         side = -1;
     
-    return Matter.Bodies.rectangle(initialCenter + (spriteFoot.distance * side),spriteFoot.y,spriteFoot.height,spriteFoot.width, {
+    return Matter.Bodies.rectangle(initialCenter + (spriteFoot.distance * side),spriteFoot.y,spriteFoot.width,spriteFoot.height, {
         chamfer: {
             radius: spriteFoot.chamfer[foot]
           },
@@ -134,15 +140,14 @@ function genCharacter(world, mouseConstraint, spriteId) {
         Matter.Body.setAngle(body, character.angle);
         
         if(character.parts.length >= partsQty){
-
+            
             // Character tends to stand
+            var maxAngle = 5 * Math.PI/180;
             if(Matter.Body.getSpeed(character) <= 0.1){
-                if (character.angle > 0)
-                    character.torque = -0.2;
-                else if (character.angle < 0)
-                    character.torque = 0.2;
-
-                Matter.Body.setAngularVelocity(character, Math.min(Math.max(character.angularVelocity, -0.1), 0.1));
+                if (character.angle > maxAngle)
+                    character.torque = -0.23;
+                else if (character.angle < maxAngle * -1)
+                    character.torque = 0.23;
             }
 
             if(flagHolding && lastMouseBody === character){
@@ -174,6 +179,7 @@ function genCharacter(world, mouseConstraint, spriteId) {
 
     Matter.Events.on(mouseConstraint, 'mouseup', function(event) {
         flagHolding = false;
+        lastMouseBody = null;
         restoreDefaultBody();   
     });
 
