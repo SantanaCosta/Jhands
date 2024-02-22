@@ -5,21 +5,21 @@ let footRot = 0.2;
 let headAngleLimit = 1.0;
 let flagHolding = false;
 let sprites = {
-    1: {head: {isRound: true, xScale: 0.1, yScale: 0.1, y: 5, radius: 30, height: null, width: null}, 
-        body: {isUnderHead: true, xScale: 0.1, yScale: 0.1, y: 50, height: 40, width: 60},
-        foot: {distance: 15, y: 81, height: 6, width:11, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
+    1: {head: {isRound: true, xScale: 0.1, yScale: 0.1, y: -65, radius: 30, height: null, width: null}, 
+        body: {isUnderHead: true, xScale: 0.1, yScale: 0.1, y: -20, height: 40, width: 60},
+        foot: {distance: 15, y: 11, height: 6, width:11, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
         fillStyle: '#375b95'}},
-    2: {head: {isRound: true, xScale: 0.08, yScale: 0.08, y: 12, radius: 22, height: null, width: null}, 
-        body: {isUnderHead: true, xScale: 0.1, yScale: 0.1, y: 50, height: 40, width: 60},
-        foot: {distance: 12, y: 78, height: 6, width:11, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
+    2: {head: {isRound: true, xScale: 0.08, yScale: 0.08, y: -58, radius: 22, height: null, width: null}, 
+        body: {isUnderHead: true, xScale: 0.1, yScale: 0.1, y: -20, height: 40, width: 60},
+        foot: {distance: 12, y: 8, height: 6, width:11, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
         fillStyle: '#563b4d'}},
-    3: {head: {isRound: false, xScale: 0.12, yScale: 0.12, y: -10, radius: null, height: 45, width: 20}, 
-        body: {isUnderHead: false, xScale: 0.2, yScale: 0.2, y: 50, height: 42, width: 62},
+    3: {head: {isRound: false, xScale: 0.12, yScale: 0.12, y: -10, radius: null, height: 70, width: 40}, 
+        body: {isUnderHead: false, xScale: 0.2, yScale: 0.2, y: 50, height: 84, width: 84},
         foot: {distance: 25, y: 100, height: 10, width:18, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
         fillStyle: '#50355e'}},
-    4: {head: {isRound: true, xScale: 0.1, yScale: 0.1, y: 9, radius: 22, height: null, width: null}, 
-        body: {isUnderHead: false, xScale: 0.12, yScale: 0.12, y: 50, height: 40, width: 60},
-        foot: {distance: 11.5, y: 80, height: 10, width:11, chamfer: {0:[0,4.5,0,0], 1:[4.5,0,0,0]}, 
+    4: {head: {isRound: true, xScale: 0.1, yScale: 0.1, y: -61, radius: 22, height: null, width: null}, 
+        body: {isUnderHead: false, xScale: 0.12, yScale: 0.12, y: -20, height: 40, width: 60},
+        foot: {distance: 11.5, y: 10, height: 10, width:11, chamfer: {0:[0,4.5,0,0], 1:[4.5,0,0,0]}, 
         fillStyle: '#735b6d'}},
 };
 
@@ -130,8 +130,14 @@ function genCharacter(world, mouseConstraint, spriteId) {
         });
 
     var partsQty = character.parts.length;
+    
+    // Temp solution to make heavy bodies get up
+    if (character.mass > 6)
+        Matter.Body.setMass(character, 2);
 
     Matter.World.add(world, [character]);
+
+    console.log(character.mass);
 
     Matter.Events.on(engine, 'beforeUpdate', function(event) {
 
@@ -142,12 +148,15 @@ function genCharacter(world, mouseConstraint, spriteId) {
         if(character.parts.length >= partsQty){
             
             // Character tends to stand
-            var maxAngle = 5 * Math.PI/180;
+            let charAngle = character.angle;
+            if(Math.abs(charAngle) > Math.PI)
+                charAngle = (charAngle * -1) % (2 * Math.PI);
+            let maxAngle = 15 * Math.PI/180;
             if(Matter.Body.getSpeed(character) <= 0.1){
-                if (character.angle > maxAngle)
-                    character.torque = -0.23;
-                else if (character.angle < maxAngle * -1)
-                    character.torque = 0.23;
+                if (charAngle > maxAngle)
+                    character.torque = -0.25;
+                else if (charAngle < maxAngle * -1)
+                    character.torque = 0.25;
             }
 
             if(flagHolding && lastMouseBody === character){
