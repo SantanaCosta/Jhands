@@ -1,0 +1,11 @@
+{
+  "scripts":{
+    "start": "npx browser-sync start --server --files js/*.js"
+  },
+  "dependencies": {
+    "fingerpose": "^0.1.0"
+  },
+  "devDependencies": {
+    "browser-sync": "^3.0.2"
+  }
+}

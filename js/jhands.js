@@ -4,7 +4,20 @@ let lastMouseBody = null;
 let footRot = 0.2;
 let headAngleLimit = 1.0;
 let flagHolding = false;
-let sprites = {
+let nearBody = null;
+const pointer = Matter.Bodies.circle(initialCenter,-50,8,{
+    isStatic: true,
+    render: {
+        sorting: 0,
+        fillStyle: 'red'
+    },
+    collisionFilter: {
+        group: -1,
+        category: 2,
+        mask: 0
+      }
+});
+const sprites = {
     1: {head: {isRound: true, xScale: 0.1, yScale: 0.1, y: -65, radius: 30, height: null, width: null}, 
         body: {isUnderHead: true, xScale: 0.1, yScale: 0.1, y: -20, height: 40, width: 60},
         foot: {distance: 15, y: 11, height: 6, width:11, chamfer: {0:[0,3.5,0,0], 1:[3.5,0,0,0]}, 
@@ -23,24 +36,67 @@ let sprites = {
         fillStyle: '#735b6d'}},
 };
 
-function init(world, mouseConstraint){
+function init(){
     let ground = Matter.Bodies.rectangle(initialCenter,initialVerticalCenter*0.75,
-        5000,100,{ isStatic: true });
-    Matter.World.add(world, ground);
-
+        5000,120,{ isStatic: true });
+    Matter.World.add(engine.world, ground);
+    Matter.World.add(engine.world, pointer);
     // Creating initial bodies
-    genRandomCharacter(world, mouseConstraint, 5);
-
-    Matter.Events.on(mouseConstraint, "mousedown", function(event) {
-        if(event.mouse.button === 1)
-            genRandomCharacter(engine.world, mouseConstraint, 3);
-    });
+    genRandomCharacter(5);
 }
 
-function genRandomCharacter(world, mouseConstraint, qty){
+function move(body, position) {
+    var diference = Matter.Vector.sub(position, body.position);
+    var dist = Matter.Vector.magnitude(diference);
+    var direction = Matter.Vector.normalise(diference);
+    var magnitude = dist * 0.25;
+  
+    var velocity = Matter.Vector.mult(direction, magnitude);
+    Matter.Body.setVelocity(body, velocity);
+  }
+
+function triggerAction(action, pos){
+
+    if (action < 0)
+        return;
+
+    var evento = { mouse: {button: action}};
+
+    Matter.Events.trigger(mouseConstraint, "mousedown", evento);
+
+    switch(action){
+        case 0:{
+            if(pos != null){
+                Matter.Body.setPosition(pointer, pos);
+            
+            var pointingBody = Matter.Query.point(engine.world.bodies, pos)[1];
+
+            if(nearBody == null && pointingBody != null && !pointingBody.isStatic)
+                nearBody = pointingBody;
+
+            if(nearBody != null && !nearBody.isStatic){
+                mouseConstraint.body = lastMouseBody = nearBody;
+                move(nearBody, pos);
+                }
+            }
+            break;
+        }
+        case 1:{
+            Matter.Body.setPosition(pointer, pos);
+            break;
+        }
+        case 3:{
+            genRandomCharacter(1);
+            break;
+        }
+        default: {}
+    }
+}
+
+function genRandomCharacter(qty){
     while (qty-- > 0) {     
         let spriteId = Math.floor(Math.random() * Object.keys(sprites).length) + 1;
-        genCharacter(world, mouseConstraint, spriteId);
+        genCharacter(spriteId);
     }
 }
 
@@ -107,7 +163,7 @@ function getFoot(spriteId, foot){
     });
 }
 
-function genCharacter(world, mouseConstraint, spriteId) {
+function genCharacter(spriteId) {
     initialCenter = window.innerWidth/2.0;
 
     let head = getHead(spriteId);
@@ -135,9 +191,7 @@ function genCharacter(world, mouseConstraint, spriteId) {
     if (character.mass > 6)
         Matter.Body.setMass(character, 2);
 
-    Matter.World.add(world, [character]);
-
-    console.log(character.mass);
+    Matter.World.add(engine.world, [character]);
 
     Matter.Events.on(engine, 'beforeUpdate', function(event) {
 
@@ -193,15 +247,18 @@ function genCharacter(world, mouseConstraint, spriteId) {
     });
 
     Matter.Events.on(mouseConstraint, 'mousedown', function(event) {
-        // Saving body being held
-        if (event.mouse.button != 2){
-            flagHolding = true;
-            lastMouseBody = mouseConstraint.body;
+        if (event.mouse.button == 1){
+            restoreDefaultBody();
+            nearBody = null;
+            flagHolding = false;
+        }
 
+        // Saving body being held
+        if (event.mouse.button == 0){
+            flagHolding = true;
+            
             if (lastMouseBody === character) // Changing head sprite when being held
                 head.render.sprite.texture = "assets/Sprite" + spriteId + "-HeadGrab.png";
-            else if (character.parts.length >= partsQty) // Restoring default body, if alive
-                restoreDefaultBody(); 
         } 
         // Head cutting
         else if (event.mouse.button === 2 && character.parts.length >= partsQty) {
@@ -211,7 +268,7 @@ function genCharacter(world, mouseConstraint, spriteId) {
                 Matter.Body.rotate(character, 0.3);
                 body.render.sprite.texture = "assets/Sprite" + spriteId + "-BodyDead.png";
                 
-                Matter.World.add(world, Matter.Bodies.circle(character.position.x,
+                Matter.World.add(engine.world, Matter.Bodies.circle(character.position.x,
                     character.position.y,25,{
                     angle: character.angle - 0.6,
                     render: {
@@ -222,6 +279,9 @@ function genCharacter(world, mouseConstraint, spriteId) {
                         }
                     }
                 }));
+
+                nearBody = null;
+                flagHolding = false;
             }
             
         }

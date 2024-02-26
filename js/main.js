@@ -8,7 +8,7 @@ let render = Matter.Render.create({
     engine: engine,
     options: {
         width: document.documentElement.clientWidth - rightCanvasBorder,
-        height: document.documentElement.clientHeight * 0.8,
+        height: document.documentElement.clientHeight * 0.7,
         wireframes:false,
     },
 });
@@ -26,7 +26,8 @@ let mouse = Matter.Mouse.create(render.canvas);
         mouse: mouse,
         constraint: {
             render: {visible: false}
-        }
+        },
+        element: document.getElementById("canvas")
     });
 render.mouse = mouse;
 Matter.World.add(engine.world, mouseConstraint);
